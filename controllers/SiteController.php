@@ -59,9 +59,9 @@ class SiteController extends Controller
     {
         $session = Yii::$app->session;
         $request = Yii::$app->request;
-        $step = $session->get('step') ?? 1;
+        $step = $session->get('step') ?: 1;
 
-        $form_data = array_merge($session->get('RegisterForm') ?? [], $request->post('RegisterForm') ?? []);
+        $form_data = array_merge($session->get('RegisterForm') ?: [], $request->post('RegisterForm') ?: []);
         $session->set('RegisterForm', $form_data);
 
         $model = new RegisterForm();
