@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\RegisterForm;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -52,6 +53,42 @@ class SiteController extends Controller
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
         ];
+    }
+
+    public function actionRegistration()
+    {
+        $session = Yii::$app->session;
+        $request = Yii::$app->request;
+        $step = $session->get('step') ?? 1;
+
+        $form_data = array_merge($session->get('RegisterForm') ?? [], $request->post('RegisterForm') ?? []);
+        $session->set('RegisterForm', $form_data);
+
+        $model = new RegisterForm();
+
+        if ($model->load(['_csrf' => $request->post('_csrf'), 'RegisterForm' => $form_data])) {
+            if ($request->isPost){
+                if ($model->validate()){
+                    $step = $request->post('registration-button');
+                    $session->set('step', $step);
+                }
+                if ($step == 4 && $user = $model->registration()) {
+                    if (Yii::$app->getUser()->login($user)) {
+                        return $this->render('success', [
+                            'user' => $user
+                        ]);
+                    }
+                }
+            }
+        }
+
+
+        return $this->render('registration', [
+            'model' => $model,
+            'step' => $step,
+            'next_step' => $step+1,
+            'prev_step' => $step-1
+        ]);
     }
 
     /**
